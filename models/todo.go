@@ -24,6 +24,7 @@ func Routes(db *gorm.DB) *chi.Mux {
 	router.Delete("/{ToDoID}", DeleteToDoByID(db))
 	router.Post("/", CreateToDo(db))
 	router.Get("/", GetAllToDos(db))
+	router.Patch("/{ToDoID}", UpdateToDoByID(db))
 	return router
 }
 
@@ -40,6 +41,9 @@ func GetToDoByID(db *gorm.DB) http.HandlerFunc {
 // DeleteToDoByID use an id to attempt to delete a specific ToDo
 func DeleteToDoByID(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ToDoID := chi.URLParam(r, "ToDoID")
+		var todo ToDo
+		db.Where("ID = ?", ToDoID).Delete(&todo)
 		response := make(map[string]string)
 		response["message"] = "Deleted ToDo successfully"
 		render.JSON(w, r, response)
@@ -66,7 +70,33 @@ func CreateToDo(db *gorm.DB) http.HandlerFunc {
 // GetAllToDos returns all ToDos that are currently stored
 func GetAllToDos(db *gorm.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ToDos := []ToDo{}
-		render.JSON(w, r, ToDos)
+		var todos []ToDo
+		db.Find(&todos)
+		render.JSON(w, r, todos)
+	}
+}
+
+// UpdateToDoByID updates a specific ToDo
+func UpdateToDoByID(db *gorm.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// ToDoID := chi.URLParam(r, "ToDoID")
+		// var todo ToDo
+		// db.Where("ID = ?", ToDoID).First(&todo)
+		// todo.Completed = true
+		// db.Save(&todo)
+		// response := make(map[string]string)
+		// response["message"] = "Deleted ToDo successfully"
+		// render.JSON(w, r, response)
+
+		decoder := json.NewDecoder(r.Body)
+		var requestToDo ToDo
+		err := decoder.Decode(&requestToDo)
+		if err != nil {
+			panic(err)
+		}
+		db.Model(&requestToDo).Where("ID = ?", requestToDo.ID).Update(ToDo{Completed: requestToDo.Completed, Title: requestToDo.Title, Description: requestToDo.Description})
+		response := make(map[string]string)
+		response["message"] = "Created ToDo successfully"
+		render.JSON(w, r, response)
 	}
 }
