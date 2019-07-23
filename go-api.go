@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
 	"github.com/joho/godotenv"
-	"github.com/pdtnelson/go-api/models"
+	"github.com/pdtnelson/go-todo-api/models"
 )
 
 func routes() *chi.Mux {
